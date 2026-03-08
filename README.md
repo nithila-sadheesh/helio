@@ -1,55 +1,71 @@
-# ☀️ Helio - Solar Intelligence for Your Home
+# ☀️ Helio - Solar Intelligence Platform
 
 <div align="center">
 
 ![Helio Logo](https://img.shields.io/badge/Helio-Solar%20Intelligence-orange?style=for-the-badge&logo=sun&logoColor=yellow)
 
-**the ~~sky's~~ roof's the limit** - Your comprehensive solar panel analysis platform
+**the ~~sky's~~ roof's the limit** - Comprehensive solar panel analysis platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/React-18.2.0-blue?logo=react)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.18.2-green?logo=express)](https://expressjs.com/)
 
 </div>
 
-> 🌿 **Built for a sustainable future** - Helio transforms any home address into a detailed solar panel effectiveness report, breaking down barriers to residential solar adoption.
+Helio is a data-driven solar analysis platform that transforms residential addresses into comprehensive solar feasibility reports using real-time geospatial and environmental APIs.
 
 ---
 
-## ✨ Key Features
+## 🏗️ Architecture & Features
 
-### 🎯 **Comprehensive Analysis**
-- **Property Location**: Satellite imagery and interactive mapping
-- **Roof Analysis**: Building footprint detection, orientation, shading analysis  
-- **Solar Resource**: PVGIS data for precise irradiance calculations
-- **Financial Modeling**: NREL utility rates, system costs, tax credits, 25-year ROI
-- **Suitability Score**: Data-driven 1-10 scale with factor breakdowns
-- **Panel Recommendations**: AI-powered technology selection and sizing
-- **Interactive Simulation**: Real-time cost and environmental impact adjustments
-- **Local Installers**: Web-searched vendor recommendations with ratings
-- **Action Plan**: 6-week personalized implementation roadmap
+### 📊 **Data Analysis Pipeline**
+- **Geocoding**: Address-to-coordinate conversion via Nominatim API
+- **Building Detection**: Real-time roof area calculation using Overpass API
+- **Solar Irradiance**: PVGIS integration for precise yield calculations
+- **Financial Modeling**: NREL utility rate database integration
+- **Scoring Algorithm**: Weighted 1-10 suitability scoring system
+- **AI Recommendations**: Claude API integration for installer evaluation
 
-### 🎨 **Beautiful UI/UX**
-- **Scroll Animations**: Benchling-inspired slide-in, fade-in, and rise effects
-- **Interactive Roadmap**: Curved timeline with animated orange neon tracing
-- **Responsive Design**: Optimized for all screen sizes with full-width layouts
-- **Modern Typography**: Georgia serif fonts for a premium, nature-inspired feel
-- **Aesthetic Backgrounds**: Enhanced illuminated sunrise effects on landing
-- **Hover Effects**: Pop-out animations with drop shadows on metrics
-- **Spring Physics**: Natural bounce effects on titles and cards
+### 🔧 **Technical Implementation**
+- **Microservices Architecture**: Separate frontend/backend with API proxy
+- **Real-time Data Processing**: Multiple API integrations with error handling
+- **Interactive Simulations**: Dynamic cost/benefit analysis with React state management
+- **Geospatial Visualization**: Leaflet integration with satellite/street view layers
+- **PDF Generation**: Print-optimized CSS for comprehensive report exports
 
 ### 📊 **Data Sources**
-| Step | Section | Data Source |
-|------|---------|-------------|
-| 1 | Property map & location | Nominatim / OpenStreetMap |
-| 2 | Roof area, footprint & orientation | Overpass API (OSM building data) |
-| 3 | Solar resource — annual yield, peak sun hours, shading loss | PVGIS (EU Joint Research Centre) |
-| 4 | Financial analysis — electricity rate, annual spend, savings | NREL Utility Rate Database |
-| 5 | Solar suitability score (1–10) | Weighted algorithm |
-| 6 | Panel recommendation — count, system cost, 30% tax credit, ROI | Calculated |
-| 7 | 25-year financial & environmental simulation | Interactive |
-| 8 | Local installer directory | Web search simulation |
-| 9 | Personalized action plan & roadmap | Claude AI (Anthropic) |
+| API | Purpose | Integration |
+|-----|---------|------------|
+| **Nominatim** | Geocoding & coordinates | REST API |
+| **Overpass API** | Building footprint detection | OQL queries |
+| **PVGIS (JRC)** | Solar irradiance data | HTTP API |
+| **NREL URDB** | Utility rate database | REST API |
+| **Anthropic Claude** | AI-powered recommendations | SDK integration |
+
+---
+
+## ⚙️ Tech Stack
+
+### Frontend
+- **React 18.2** - Component-based UI framework
+- **Vite 5.0** - Fast development server and build tool
+- **React-Leaflet** - Interactive mapping with OpenStreetMap tiles
+- **Recharts** - Data visualization charts
+- **CSS3 Animations** - Scroll-triggered effects and transitions
+
+### Backend
+- **Node.js 18+** - JavaScript runtime
+- **Express 4.18** - REST API server
+- **Anthropic SDK** - AI integration for recommendations
+- **CORS** - Cross-origin resource sharing
+- **dotenv** - Environment variable management
+
+### Infrastructure
+- **API Proxy** - Frontend-to-backend communication
+- **Concurrent Development** - Hot reload for both services
+- **Print Optimization** - CSS media queries for PDF generation
+- **Error Handling** - Graceful API failure management
 
 ---
 
@@ -102,162 +118,89 @@ Navigate to **http://localhost:5173**
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
-### Frontend (React + Vite)
 ```
-client/
-├── src/
-│   ├── components/
-│   │   ├── Landing.jsx          # Landing page with enhanced hero section
-│   │   ├── Report.jsx           # Main report container
-│   │   ├── CurvedRoadmap.jsx   # Animated timeline component
-│   │   ├── LoadingScreen.jsx   # Beautiful loading animation
-│   │   └── steps/               # Individual analysis steps
-│   ├── styles/
-│   │   └── global.css          # Global styles and animations
-│   └── api.js                  # API client functions
-```
-
-### Backend (Express + Node.js)
-```
-server/
-├── index.js                    # Main server file
-├── .env                        # Environment variables
-└── api/                        # API route handlers
+helio/
+├── client/                  # React + Vite frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Landing.jsx          # Entry point component
+│   │   │   ├── Report.jsx           # Main report container
+│   │   │   ├── CurvedRoadmap.jsx   # Timeline visualization
+│   │   │   └── steps/               # Analysis step components
+│   │   ├── styles/global.css       # Global styles & animations
+│   │   └── api.js                  # API client functions
+│   ├── vite.config.js             # Vite configuration
+│   └── package.json
+├── server/
+│   ├── index.js                   # Express API server
+│   └── .env                       # Environment variables
+└── package.json                   # Root workspace scripts
 ```
 
----
+## 📊 Algorithm Details
 
-## 🎯 How It Works
+### Suitability Score Calculation
+The 1-10 score uses weighted factors:
 
-1. **Address Input**: User enters any home address
-2. **Geocoding**: Convert address to coordinates using Nominatim
-3. **Roof Analysis**: Fetch building footprint and calculate usable area
-4. **Solar Data**: Get irradiance data from PVGIS for the exact location
-5. **Financial Analysis**: Lookup local utility rates and calculate ROI
-6. **Scoring**: Calculate 1-10 suitability score based on weighted factors
-7. **Recommendations**: AI-powered panel and installer suggestions
-8. **Action Plan**: Generate personalized 6-week implementation roadmap
+| Factor | Weight | Data Source | Calculation |
+|--------|--------|-------------|-------------|
+| Solar Resource | 3.5 pts | PVGIS irradiance | kWh/m²/year normalized |
+| Roof Area | 2.0 pts | Overpass API | m² of usable roof space |
+| Shading Loss | 1.5 pts | PVGIS horizon | % shading impact |
+| Electricity Rate | 1.5 pts | NREL URDB | $/kWh local rate |
+| Roof Orientation | 1.5 pts | Building analysis | Optimal angle deviation |
 
----
+### Financial Model
+- **System Cost**: Calculated per-watt with regional adjustments
+- **Federal Tax Credit**: 30% ITC application
+- **ROI Calculation**: 25-year cash flow analysis
+- **Environmental Impact**: CO2 reduction based on local grid mix
 
-## 🌍 Environmental Impact
-
-Helio emphasizes sustainability throughout:
-- **CO2 Reduction**: Quantified in tons per year with 25-year projections
-- **Tree Equivalents**: Environmental impact in relatable terms
-- **Carbon Offset**: Annual electricity savings calculations
-- **Long-term Benefits**: 25-year environmental and financial projections
-
----
-
-## 📱 Features in Detail
-
-### 🎨 **Animations & Interactions**
-- **Scroll-triggered animations**: Elements slide, fade, and rise as you scroll
-- **Interactive metrics**: Hover effects with pop-out animations and drop shadows
-- **Neon roadmap tracing**: Orange highlight animates along the curved timeline
-- **Spring physics**: Natural bounce effects on titles and cards
-- **Staggered animations**: Sequential appearance of content elements
-
-### 📊 **Data Visualization**
-- **Interactive maps**: Satellite and street view toggles with markers
-- **Gauge charts**: Visual suitability score representation with animations
-- **Progress bars**: Factor breakdowns and comparisons
-- **Simulation sliders**: Real-time cost and impact adjustments
-- **Spaced metrics**: Full-width layout with equal prominence
-
-### 📋 **Action Plan**
-- **Curved Timeline**: Visual roadmap with weekly milestones
-- **Task Checklists**: Detailed action items for each phase
-- **Progress Tracking**: Click to mark tasks complete
-- **PDF Export**: Comprehensive report download with all details
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-```env
-# server/.env
-ANTHROPIC_API_KEY=your_anthropic_api_key
-PORT=3001
-NODE_ENV=development
-```
-
-### Suitability Score Breakdown
-The 1–10 score is weighted across five factors:
-
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| Solar resource (annual yield) | 3.5 pts | PVGIS irradiance data |
-| Roof usable area | 2.0 pts | Building footprint analysis |
-| Shading loss | 1.5 pts | Horizon profile scanning |
-| Electricity rate | 1.5 pts | NREL utility database |
-| Roof orientation | 1.5 pts | Optimal sun exposure |
-
----
-
-## 📦 Build & Deploy
+## � Build & Deployment
 
 ### Production Build
 ```bash
-# Build frontend
+# Build frontend for production
 cd client && npm run build
 
 # Start production server
 cd server && npm start
 ```
 
+### API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/analyze?address=<addr>` | Complete solar analysis |
+| POST | `/api/installers` | Local installer recommendations |
+| POST | `/api/actionplan` | Generate implementation roadmap |
+
 ### Deployment Options
-- **Vercel**: Frontend deployment with serverless functions
-- **Heroku**: Full-stack deployment
-- **AWS**: Container deployment
-- **Netlify**: Static frontend with serverless functions
+- **Vercel**: Frontend with serverless functions
+- **Heroku**: Full-stack Node.js deployment  
+- **AWS EC2**: Container-based deployment
+- **DigitalOcean**: Droplet with PM2 process management
 
----
+### Environment Configuration
+```env
+ANTHROPIC_API_KEY=sk-ant-xxx
+NODE_ENV=production
+PORT=3001
+```
 
-## 🤝 Contributing
+## 🧪 Development
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Scripts
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Concurrent development servers |
+| `npm run install:all` | Install all dependencies |
+| `cd client && npm run build` | Production build |
+| `cd client && npm run preview` | Preview production build |
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- **OpenStreetMap**: Geocoding and mapping data
-- **EU Joint Research Centre**: PVGIS solar data
-- **NREL**: Utility rate database
-- **Anthropic**: AI-powered insights and recommendations
-- **React & Vite**: Modern frontend framework
-- **Express**: Robust backend framework
-
----
-
-## 📞 Support
-
-For questions, suggestions, or issues:
-- Create an [Issue](https://github.com/your-repo/helio/issues)
-- Check the [Project Wiki](https://github.com/your-repo/helio/wiki)
-- Review the [Documentation](https://github.com/your-repo/helio/docs)
-
----
-
-<div align="center">
-
-**Built with ❤️ for a sustainable future**
-
-*"the roof's the limit"*
-
-</div>
+### API Integration Notes
+- **Rate Limiting**: Built-in retry logic for external APIs
+- **Error Handling**: Graceful degradation when services unavailable
+- **Caching**: Response caching for repeated queries
+- **Validation**: Input sanitization and coordinate validation
