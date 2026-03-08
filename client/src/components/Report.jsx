@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Step1Map from './steps/Step1Map.jsx'
 import Step2Roof from './steps/Step2Roof.jsx'
 import Step3Solar from './steps/Step3Solar.jsx'
@@ -30,6 +30,10 @@ export default function Report({ data, onReset }) {
   const [planGenerated, setPlanGenerated] = useState(false)
   const [planError, setPlanError] = useState(null)
   const [doneSteps, setDoneSteps] = useState({})
+  const [rmVisible, setRmVisible] = useState({})
+
+  const roadmapWrapRef = useRef(null)
+  const rmSpineGlowRef = useRef(null)
 
   const { location, roof, solar, financial, score, panels, environmental } = data
 
@@ -48,7 +52,7 @@ export default function Report({ data, onReset }) {
     })
   }, [])
 
-  // Sidebar active step
+  // Sidebar active step tracker
   useEffect(() => {
     const obs = new IntersectionObserver(
       entries => { entries.forEach(e => { if (e.isIntersecting) setActiveStep(e.target.id) }) },
@@ -58,14 +62,47 @@ export default function Report({ data, onReset }) {
     return () => obs.disconnect()
   }, [])
 
-  // Scroll-triggered fade-in
+  // Scroll-triggered fade-in for step sections
   useEffect(() => {
     const obs = new IntersectionObserver(
       entries => { entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); obs.unobserve(e.target) } }) },
-      { threshold: 0.08 }
+      { threshold: 0.06 }
     )
     document.querySelectorAll('.step-section').forEach(s => obs.observe(s))
     return () => obs.disconnect()
+  }, [planGenerated])
+
+  // Roadmap row visibility (staggered slide-in)
+  useEffect(() => {
+    if (!planGenerated || !planSteps) return
+    const obs = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const idx = parseInt(e.target.dataset.rmIdx)
+            setRmVisible(prev => ({ ...prev, [idx]: true }))
+          }
+        })
+      },
+      { threshold: 0.12 }
+    )
+    document.querySelectorAll('.rm-row[data-rm-idx]').forEach(el => obs.observe(el))
+    return () => obs.disconnect()
+  }, [planGenerated, planSteps])
+
+  // Roadmap neon spine scroll animation
+  useEffect(() => {
+    if (!planGenerated) return
+    const handleScroll = () => {
+      if (!roadmapWrapRef.current || !rmSpineGlowRef.current) return
+      const rect = roadmapWrapRef.current.getBoundingClientRect()
+      const viewH = window.innerHeight
+      const progress = Math.max(0, Math.min(1, (viewH - rect.top) / (rect.height + viewH * 0.5)))
+      rmSpineGlowRef.current.style.height = `${progress * 100}%`
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [planGenerated])
 
   function scrollTo(id) {
@@ -93,27 +130,44 @@ export default function Report({ data, onReset }) {
 
   return (
     <div>
-      {/* Print-only header */}
+      {/* Print-only header — comprehensive */}
       <div className="print-header">
-        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '1.8rem', fontWeight: 900, color: '#b45309', marginBottom: 6 }}>helio.</div>
+        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '2rem', fontWeight: 900, color: '#b45309', marginBottom: 6 }}>helio.</div>
         <div style={{ fontSize: '1rem', color: '#444', marginBottom: 4 }}>{location.display}</div>
         <div style={{ fontSize: '0.82rem', color: '#888', marginBottom: 20 }}>
           Solar Report — {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
-        <div style={{ display: 'flex', gap: 32, marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid #ddd' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 24, paddingBottom: 20, borderBottom: '2px solid #ddd' }}>
           {[
-            { label: 'Suitability Score', val: `${score.total}/10` },
+            { label: 'Suitability Score', val: `${score.total}/10 (${score.rating})` },
             { label: 'CO2 Eliminated', val: `${co2Tons}t/yr` },
             { label: 'Annual Savings', val: `$${panels.annualSavings.toLocaleString()}` },
-            { label: 'Recommended Panels', val: panels.recommendedPanels }
+            { label: 'Recommended Panels', val: `${panels.recommendedPanels} panels` }
           ].map(m => (
             <div key={m.label}>
-              <div style={{ fontSize: '0.68rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m.label}</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#111' }}>{m.val}</div>
+              <div style={{ fontSize: '0.68rem', color: '#888', letterSpacing: '0.05em', marginBottom: 3 }}>{m.label}</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#111' }}>{m.val}</div>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#111', marginBottom: 16 }}>Solar Action Plan</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20, fontSize: '0.82rem', color: '#444' }}>
+          {[
+            { label: 'System Size', val: `${panels.systemSizeKwp} kWp` },
+            { label: 'Annual Production', val: `${panels.annualProductionKwh.toLocaleString()} kWh` },
+            { label: 'Energy Offset', val: `${panels.offsetPercent}%` },
+            { label: 'Net Cost (after 30% credit)', val: `$${panels.netCostAfterTaxCredit.toLocaleString()}` },
+            { label: 'Simple Payback', val: `${panels.simplePaybackYears} years` },
+            { label: '25-Year Net Savings', val: `$${panels.savings25Year.toLocaleString()}` },
+            { label: 'Roof Orientation', val: `${roof.orientation}` },
+            { label: 'Peak Sun Hours', val: `${solar.peakSunHoursPerDay} hrs/day` },
+            { label: 'Trees Equivalent', val: `${trees} trees/yr` },
+          ].map(m => (
+            <div key={m.label} style={{ borderLeft: '3px solid #f59e0b', paddingLeft: 10 }}>
+              <div style={{ fontSize: '0.68rem', color: '#888' }}>{m.label}</div>
+              <div style={{ fontWeight: 700, color: '#111' }}>{m.val}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="report-topbar no-print">
@@ -159,7 +213,7 @@ export default function Report({ data, onReset }) {
             display: 'flex', gap: 48, alignItems: 'center', flexWrap: 'wrap'
           }}>
             <div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 8 }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text3)', letterSpacing: '0.09em', marginBottom: 8 }}>
                 Your potential impact
               </div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', fontWeight: 900, color: 'var(--green)', lineHeight: 1 }}>
@@ -211,7 +265,7 @@ export default function Report({ data, onReset }) {
             {planLoading && (
               <div style={{ textAlign: 'center', padding: '28px 0' }} className="no-print">
                 <div className="spinner" />
-                <div style={{ color: 'var(--text2)', fontSize: '0.86rem' }}>Building your personalized plan...</div>
+                <div style={{ color: 'var(--text2)', fontSize: '0.86rem' }}>Building your personalized roadmap...</div>
               </div>
             )}
 
@@ -223,29 +277,68 @@ export default function Report({ data, onReset }) {
 
             {planGenerated && planSteps && (
               <>
-                <div className="card" style={{ marginBottom: 14 }}>
-                  <div className="timeline">
-                    {planSteps.map((step, i) => (
+                {/* Curved roadmap with neon spine */}
+                <div className="roadmap-wrap" ref={roadmapWrapRef}>
+                  <div className="rm-spine no-print">
+                    <div className="rm-spine-track" />
+                    <div className="rm-spine-glow" ref={rmSpineGlowRef} />
+                  </div>
+
+                  {planSteps.map((step, i) => {
+                    const isLeft = i % 2 === 0
+                    return (
                       <div
                         key={i}
-                        className={`tl-item ${doneSteps[i] ? 'done' : ''}`}
-                        onClick={() => setDoneSteps(prev => ({ ...prev, [i]: !prev[i] }))}
+                        className={`rm-row ${rmVisible[i] ? 'rm-visible' : ''}`}
+                        data-rm-idx={String(i)}
+                        style={{ '--rm-delay': `${i * 0.1}s` }}
                       >
-                        <div className="tl-dot">{doneSteps[i] ? '✓' : i + 1}</div>
-                        <div className="tl-body">
-                          <div className="tl-row">
-                            <span className="tl-title">{step.title}</span>
-                            {step.timeline && <span className="tl-time">{step.timeline}</span>}
-                          </div>
-                          <ul className="tl-bullets">
-                            {(step.bullets || (step.description ? [step.description] : [])).map((b, j) => (
-                              <li key={j}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
+                        {isLeft ? (
+                          <>
+                            <div
+                              className={`rm-card rm-card-left ${doneSteps[i] ? 'rm-done' : ''}`}
+                              onClick={() => setDoneSteps(prev => ({ ...prev, [i]: !prev[i] }))}
+                            >
+                              {step.timeline && <div className="rm-week">{step.timeline}</div>}
+                              <div className="rm-title">{step.title}</div>
+                              <ul className="rm-bullets">
+                                {(step.bullets || (step.description ? [step.description] : [])).map((b, j) => (
+                                  <li key={j}>{b}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="rm-node">
+                              <div className={`rm-node-circle ${doneSteps[i] ? 'rm-node-done' : ''}`}>
+                                {doneSteps[i] ? '✓' : i + 1}
+                              </div>
+                            </div>
+                            <div className="rm-spacer" />
+                          </>
+                        ) : (
+                          <>
+                            <div className="rm-spacer" />
+                            <div className="rm-node">
+                              <div className={`rm-node-circle ${doneSteps[i] ? 'rm-node-done' : ''}`}>
+                                {doneSteps[i] ? '✓' : i + 1}
+                              </div>
+                            </div>
+                            <div
+                              className={`rm-card rm-card-right ${doneSteps[i] ? 'rm-done' : ''}`}
+                              onClick={() => setDoneSteps(prev => ({ ...prev, [i]: !prev[i] }))}
+                            >
+                              {step.timeline && <div className="rm-week">{step.timeline}</div>}
+                              <div className="rm-title">{step.title}</div>
+                              <ul className="rm-bullets">
+                                {(step.bullets || (step.description ? [step.description] : [])).map((b, j) => (
+                                  <li key={j}>{b}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    )
+                  })}
                 </div>
 
                 <button
@@ -253,9 +346,9 @@ export default function Report({ data, onReset }) {
                   onClick={() => window.print()}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '9px 18px', borderRadius: 9,
+                    padding: '10px 20px', borderRadius: 9, marginTop: 24,
                     border: '1px solid var(--border2)', background: 'var(--surface2)',
-                    color: 'var(--text2)', cursor: 'pointer', fontSize: '0.84rem',
+                    color: 'var(--text2)', cursor: 'pointer', fontSize: '0.85rem',
                     fontWeight: 600, transition: 'all 0.15s', fontFamily: 'var(--font)'
                   }}
                 >

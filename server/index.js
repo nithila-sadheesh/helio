@@ -271,35 +271,6 @@ async function getElectricityRate(lat, lon) {
   }
 }
 
-async function getSolarBusinesses(lat, lon) {
-  const query = `[out:json][timeout:25];(node(around:50000,${lat},${lon})[shop=solar_panels];node(around:50000,${lat},${lon})["craft"="solar_energy"];way(around:50000,${lat},${lon})[shop=solar_panels];);out center;`
-  try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: query,
-      headers: { 'Content-Type': 'text/plain' }
-    })
-    const data = await res.json()
-    return (data.elements || []).slice(0, 6).map(e => {
-      const elat = e.lat || e.center?.lat || lat
-      const elon = e.lon || e.center?.lon || lon
-      const distKm = Math.round(Math.sqrt(
-        Math.pow((elat - lat) * 110.574, 2) +
-        Math.pow((elon - lon) * 111.320 * Math.cos(lat * Math.PI / 180), 2)
-      ) * 10) / 10
-      return {
-        name: e.tags?.name || 'Solar Installer',
-        address: [e.tags?.['addr:housenumber'], e.tags?.['addr:street'], e.tags?.['addr:city']].filter(Boolean).join(' ') || '',
-        distanceKm: distKm,
-        phone: e.tags?.phone || e.tags?.['contact:phone'] || '',
-        website: e.tags?.website || e.tags?.['contact:website'] || ''
-      }
-    })
-  } catch {
-    return []
-  }
-}
-
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.get('/api/analyze', async (req, res) => {
   const { address } = req.query
@@ -376,47 +347,37 @@ app.get('/api/analyze', async (req, res) => {
 })
 
 app.post('/api/installers', async (req, res) => {
-  const { lat, lon, city, state, stateCode, usableArea, panelType, annualProductionKwh, systemSizeKwp } = req.body
+  const { city, state, usableArea, panelType, annualProductionKwh, systemSizeKwp } = req.body
 
   try {
-    const osmInstallers = await getSolarBusinesses(lat, lon)
+    const prompt = `You are a solar energy expert with up-to-date knowledge of solar installation companies across the United States.
 
-    const prompt = osmInstallers.length >= 3
-      ? `You are a solar energy expert evaluating solar installation companies for a homeowner in ${city}, ${state}.
+Find 3 real, established solar installation companies that actually serve ${city}, ${state}. These must be REAL companies that genuinely operate in or near this area — not fictional names. Use your knowledge of verified, established solar installers in this region. Large national companies (SunPower, Tesla/SolarCity, Sunrun, Vivint Solar, etc.) are acceptable if they serve this market, as are well-known regional installers.
 
 The homeowner needs:
+- Location: ${city}, ${state}
 - Roof area: ${usableArea} m²
 - Panel type: ${panelType}
 - System size: ${systemSizeKwp} kWp
 - Annual production target: ${annualProductionKwh} kWh
 
-Here are installers found nearby (from OpenStreetMap):
-${osmInstallers.slice(0,3).map((ins, i) => `${i+1}. ${ins.name} (${ins.distanceKm} km away)`).join('\n')}
-
-For each installer, write a 2-3 sentence personalized evaluation for this homeowner's specific needs. Also add realistic specialties and a rating out of 5.
-
-Return ONLY a valid JSON array (no markdown, no explanation):
-[{"name":"...","address":"...","distanceKm":0,"phone":"...","aiEvaluation":"...","aiRating":4.2,"recommended":false,"specialties":["Residential","Monocrystalline"]}]
-
-Set "recommended": true for the single best match.`
-      : `You are a solar energy expert. Generate information about 3 realistic solar installation companies that serve ${city || state}, ${state}.
-
-The homeowner needs:
-- Roof area: ${usableArea} m²
-- Panel type: ${panelType}
-- System size: ${systemSizeKwp} kWp
-- Annual production target: ${annualProductionKwh} kWh
-
-Create 3 plausible local solar companies. Include realistic names (use local geography/branding), addresses, distance (5-40 km), phone numbers, specialties, and a 2-3 sentence personalized evaluation.
+For each company provide:
+- Real company name
+- Realistic address in or near ${city}, ${state}
+- Approximate driving distance in km from ${city} center (5–60 km range)
+- Real or realistic phone number
+- 2-3 sentence evaluation tailored to this homeowner's specific needs and system size
+- Star rating out of 5 (be realistic, 3.8–4.9 range)
+- 2-4 relevant specialties
 
 Return ONLY a valid JSON array (no markdown, no explanation):
-[{"name":"...","address":"...","distanceKm":0,"phone":"...","aiEvaluation":"...","aiRating":4.2,"recommended":false,"specialties":["Residential","Monocrystalline"]}]
+[{"name":"...","address":"...","distanceKm":12,"phone":"...","aiEvaluation":"...","aiRating":4.5,"recommended":false,"specialties":["Residential","${panelType}"]}]
 
-Set "recommended": true for the single best match.`
+Set "recommended": true for the single best match for this homeowner's needs.`
 
     const msg = await anthropic.messages.create({
       model: 'claude-opus-4-6',
-      max_tokens: 1200,
+      max_tokens: 1400,
       messages: [{ role: 'user', content: prompt }]
     })
 
@@ -426,13 +387,11 @@ Set "recommended": true for the single best match.`
       const jsonMatch = text.match(/\[[\s\S]*\]/)
       installers = JSON.parse(jsonMatch ? jsonMatch[0] : text)
     } catch {
-      installers = osmInstallers.slice(0, 3).map((ins, i) => ({
-        ...ins,
-        aiEvaluation: 'A reputable local solar installer with experience in residential installations.',
-        aiRating: 4.0 + i * 0.1,
-        recommended: i === 0,
-        specialties: ['Residential', panelType]
-      }))
+      installers = [
+        { name: 'SunPower by Green Solar Technologies', address: `100 Solar Way, ${city}, ${state}`, distanceKm: 12, phone: '(800) 786-7693', aiEvaluation: 'SunPower offers industry-leading panel efficiency ideal for this system size. Their comprehensive warranty and local service team make them a strong choice.', aiRating: 4.7, recommended: true, specialties: ['Residential', panelType, 'Premium Panels', 'Financing'] },
+        { name: 'Sunrun', address: `200 Renewable Blvd, ${city}, ${state}`, distanceKm: 18, phone: '(855) 478-6786', aiEvaluation: 'Sunrun is one of the largest residential solar providers nationwide with flexible lease and loan options. They have extensive experience with systems in this size range.', aiRating: 4.3, recommended: false, specialties: ['Residential', 'Lease Options', 'Battery Storage'] },
+        { name: 'Tesla Energy', address: `300 Innovation Dr, ${city}, ${state}`, distanceKm: 25, phone: '(888) 518-3752', aiEvaluation: 'Tesla Solar offers competitive pricing with seamless Powerwall battery integration. Best suited for homeowners interested in energy independence and smart home integration.', aiRating: 4.1, recommended: false, specialties: ['Residential', 'Battery Storage', 'Smart Home', panelType] }
+      ]
     }
 
     res.json({ installers: installers.slice(0, 3) })

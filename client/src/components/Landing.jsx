@@ -54,28 +54,37 @@ export default function Landing({ onAnalyze, error }) {
   return (
     <div className="landing">
       <div className="landing-hero">
-        <div className="logo">helio.</div>
-        <div className="landing-tagline">Solar intelligence for your home</div>
-        <p className="landing-sub">
-          Enter any address and get a comprehensive solar panel effectiveness report —
-          from roof analysis to CO2 impact to a personalized action plan.
-        </p>
+        {/* Sunrise background — landing page only */}
+        <div className="sunrise-orb" />
+        <div className="sunrise-halo" />
+        <div className="sunrise-rays" />
 
-        <form className="address-form" onSubmit={handleSubmit}>
-          <input
-            className="address-input"
-            type="text"
-            value={address}
-            onChange={e => setAddress(e.target.value)}
-            placeholder="123 Main Street, San Francisco, CA"
-            autoFocus
-          />
-          <button className="analyze-btn" type="submit" disabled={loading || !address.trim()}>
-            {loading ? 'Analyzing...' : 'Analyze My Home'}
-          </button>
-        </form>
+        <div className="landing-hero-content">
+          <div className="logo">helio.</div>
+          <div className="landing-tagline">
+            the <del>sky's</del> <span className="tagline-replace">roof's</span> the limit
+          </div>
+          <p className="landing-sub">
+            Enter any address and get a comprehensive solar panel effectiveness report —
+            from roof analysis to CO2 impact to a personalized action plan.
+          </p>
 
-        {error && <div className="error-msg">{error}</div>}
+          <form className="address-form" onSubmit={handleSubmit}>
+            <input
+              className="address-input"
+              type="text"
+              value={address}
+              onChange={e => setAddress(e.target.value)}
+              placeholder="123 Main Street, San Francisco, CA"
+              autoFocus
+            />
+            <button className="analyze-btn" type="submit" disabled={loading || !address.trim()}>
+              {loading ? 'Analyzing...' : 'Analyze My Home'}
+            </button>
+          </form>
+
+          {error && <div className="error-msg">{error}</div>}
+        </div>
       </div>
 
       <div className="feature-grid">

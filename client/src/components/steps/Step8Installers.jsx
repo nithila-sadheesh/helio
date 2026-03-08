@@ -45,10 +45,7 @@ export default function Step8Installers({ installers, loading, error }) {
   return (
     <div className="step-section" style={{ animationDelay: '560ms' }}>
       <div className="step-header">
-        <div className="step-num">8</div>
-        <div>
-          <div className="step-title">Local Solar Installers</div>
-        </div>
+        <div className="step-title">Local Solar Installers</div>
       </div>
 
       <div className="card">

@@ -6,7 +6,6 @@ export default function Step4Financial({ financial, panels }) {
   const { electricityRate, annualUsageKwh, annualElectricityCost, utilityName } = financial
   const monthlyBill = Math.round(annualElectricityCost / 12)
 
-  // With solar: gross savings minus maintenance
   const grossSavings = panels.annualSavings
   const netSavings = grossSavings - MAINTENANCE_PER_YEAR
   const paybackNet = Math.round((panels.netCostAfterTaxCredit / netSavings) * 10) / 10
@@ -20,10 +19,7 @@ export default function Step4Financial({ financial, panels }) {
   return (
     <div className="step-section" style={{ animationDelay: '240ms' }}>
       <div className="step-header">
-        <div className="step-num">4</div>
-        <div>
-          <div className="step-title">Financial Analysis</div>
-        </div>
+        <div className="step-title">Financial Analysis</div>
       </div>
 
       <div className="card">
@@ -34,7 +30,7 @@ export default function Step4Financial({ financial, panels }) {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16
         }}>
           <div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+            <div style={{ fontSize: '0.76rem', color: 'var(--text3)', marginBottom: 4 }}>
               You currently spend
               <InfoTip description="Based on your state's average annual household electricity consumption." source="US EIA 2023 state-level data" />
             </div>
@@ -74,7 +70,7 @@ export default function Step4Financial({ financial, panels }) {
           background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.15)',
           borderRadius: 11, padding: '18px 20px'
         }}>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 14 }}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--text3)', marginBottom: 14 }}>
             With solar panels installed
           </div>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 16 }}>

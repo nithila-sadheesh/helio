@@ -51,10 +51,7 @@ export default function Step2Roof({ roof }) {
   return (
     <div className="step-section" style={{ animationDelay: '80ms' }}>
       <div className="step-header">
-        <div className="step-num">2</div>
-        <div>
-          <div className="step-title">Roof Analysis</div>
-        </div>
+        <div className="step-title">Roof Analysis</div>
       </div>
 
       <div className="card">
@@ -85,7 +82,7 @@ export default function Step2Roof({ roof }) {
         <div style={{ display: 'flex', gap: 20, alignItems: 'center', paddingTop: 18, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
           <CompassRose orientation={roof.orientation} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 7 }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text3)', letterSpacing: '0.06em', marginBottom: 7 }}>
               Primary Slope Facing
               <InfoTip description="Estimated from the longest wall of the building footprint. The slope faces perpendicular to the ridge." source="OpenStreetMap building geometry" />
             </div>

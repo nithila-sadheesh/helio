@@ -21,10 +21,7 @@ export default function Step1Map({ location }) {
   return (
     <div className="step-section" style={{ animationDelay: '0ms' }}>
       <div className="step-header">
-        <div className="step-num">1</div>
-        <div>
-          <div className="step-title">Property Location</div>
-        </div>
+        <div className="step-title">Property Location</div>
       </div>
       <div className="card" style={{ padding: '14px' }}>
         <div style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: 10, padding: '0 2px' }}>

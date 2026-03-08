@@ -36,10 +36,7 @@ export default function Step3Solar({ solar }) {
   return (
     <div className="step-section" style={{ animationDelay: '160ms' }}>
       <div className="step-header">
-        <div className="step-num">3</div>
-        <div>
-          <div className="step-title">Solar Resource</div>
-        </div>
+        <div className="step-title">Solar Resource</div>
       </div>
 
       <div className="card">
@@ -88,7 +85,7 @@ export default function Step3Solar({ solar }) {
             <div className="stat-value" style={{ color: solar.shadingLoss < 10 ? 'var(--green)' : solar.shadingLoss < 18 ? 'var(--solar)' : 'var(--red)' }}>
               {solar.shadingLoss}%
             </div>
-            <div className="stat-sub">{solar.shadingLoss < 10 ? 'minimal obstruction' : solar.shadingLoss < 18 ? 'moderate' : 'significant — investigate'}</div>
+            <div className="stat-sub">{solar.shadingLoss < 10 ? 'Minimal obstruction' : solar.shadingLoss < 18 ? 'Moderate' : 'Significant — investigate'}</div>
           </div>
         </div>
 
